@@ -14,10 +14,10 @@ function [imgs, pos, target_sz] = load_video_info(base_path, video)
 	if base_path(end) ~= '/' && base_path(end) ~= '\',
 		base_path(end+1) = '/';
 	end
-	video_path = [base_path video '/imgs/'];
-
+	video_path = [base_path video '/' ];
 	%load ground truth from text file
-	ground_truth = csvread([base_path '/' video '/' 'groundtruth.txt']);
+	disp([base_path '/' video '/' 'groundtruth.txt']);
+    ground_truth = csvread([base_path '/' video '/' 'groundtruth.txt']);
 	region = ground_truth(1, :);
 	[cx, cy, w, h] = get_axis_aligned_BB(region);
     pos = [cy cx]; % centre of the bounding box
