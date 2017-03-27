@@ -20,8 +20,8 @@ function bboxes = tracker(varargin)
     p.video = 'vot15_bag';
     p.visualization = false;
     p.gpus = 1;
-    p.bbox_output = false;
-    p.fout = -1;
+    p.bbox_output = true;
+    %p.fout = -1;
     %% Params from the network architecture, have to be consistent with the training
     p.exemplarSize = 127;  % input z size
     p.instanceSize = 255;  % input x size (search region)
@@ -42,6 +42,12 @@ function bboxes = tracker(varargin)
 
     % Get environment-specific default paths.
     p = env_paths_tracking(p);
+    
+    % open file T
+    p.fout = strcat('../results/', 'result_', p.video, '.txt');
+    file_output = fopen(p.fout, 'w');
+    %disp(p.fout);
+    
     % Load ImageNet Video statistics
     if exist(p.stats_path,'file')
         stats = load(p.stats_path);
@@ -154,11 +160,11 @@ function bboxes = tracker(varargin)
         end
 
         if p.bbox_output
-            fprintf(p.fout,'%.2f,%.2f,%.2f,%.2f\n', bboxes(i, :));
+            fprintf(file_output,'%.2f,%.2f,%.2f,%.2f\n', bboxes(i, :));
         end
 
     end
 
     bboxes = bboxes(startFrame : i, :);
-
+    fclose(file_output);
 end
