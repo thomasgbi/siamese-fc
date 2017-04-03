@@ -114,6 +114,10 @@ function bboxes = tracker(varargin)
     z_features = net_z.vars(zFeatId).value;
     z_features = repmat(z_features, [1 1 1 p.numScale]);
 
+    %boundingbox
+    ground_truth = csvread([p.seq_base_path '/' p.video '/' 'groundtruth.txt']);
+    %disp([p.seq_base_path '/' p.video '/' 'groundtruth.txt']);
+    
     bboxes = zeros(nImgs, 4);
     % start tracking
     tic;
@@ -138,8 +142,9 @@ function bboxes = tracker(varargin)
         else
             % at the first frame output position and size passed as input (ground truth)
         end
-
+             
         rectPosition = [targetPosition([2,1]) - targetSize([2,1])/2, targetSize([2,1])];
+        %disp(rectPosition);
         % output bbox in the original frame coordinates
         oTargetPosition = targetPosition; % .* frameSize ./ newFrameSize;
         oTargetSize = targetSize; % .* frameSize ./ newFrameSize;
@@ -158,9 +163,23 @@ function bboxes = tracker(varargin)
                 step(videoPlayer, im);
             end
         end
-
+        
+        [cx, cy, w, h] = get_axis_aligned_BB(ground_truth(i, :));
+        x = cx - w/2;
+        y = cy - h/2;
+        overlap = bboxOverlapRatio(bboxes(i, :), [x y w h]);
+        % restart bb with ground truth
+        if overlap < 0.01
+            %disp(targetPosition);
+            targetPosition = [cy cx];
+            %disp(targetPosition);
+            %disp(targetSize);
+            targetSize = [h w];
+            %disp(targetSize);
+        end
+        
         if p.bbox_output
-            fprintf(file_output,'%.2f,%.2f,%.2f,%.2f\n', bboxes(i, :));
+            fprintf(file_output,'%.2f,%.2f,%.2f,%.2f,%.2f\n', bboxes(i, :), overlap);
         end
 
     end
