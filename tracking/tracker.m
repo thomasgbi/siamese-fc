@@ -43,6 +43,8 @@ function bboxes = tracker(varargin)
     % Get environment-specific default paths.
     p = env_paths_tracking(p);
     
+    failures = 0;
+    
     % open file T
     p.fout = strcat('../results/', 'result_', p.video, '.txt');
     file_output = fopen(p.fout, 'w');
@@ -167,19 +169,22 @@ function bboxes = tracker(varargin)
         [cx, cy, w, h] = get_axis_aligned_BB(ground_truth(i, :));
         x = cx - w/2;
         y = cy - h/2;
-        overlap = bboxOverlapRatio(bboxes(i, :), [x y w h]);
+        %overlap = bboxOverlapRatio(bboxes(i, :), [x y w h]);
+        overlap = bboxOverlapRatio(bboxes(i, :), ground_truth(i, :));
         % restart bb with ground truth
-        if overlap < 0.01
+        if overlap < 0.2
             %disp(targetPosition);
             targetPosition = [cy cx];
             %disp(targetPosition);
             %disp(targetSize);
             targetSize = [h w];
             %disp(targetSize);
+            failures = failures + 1;
+            disp('Perdeu');
         end
         
         if p.bbox_output
-            fprintf(file_output,'%.2f,%.2f,%.2f,%.2f,%.2f\n', bboxes(i, :), overlap);
+            fprintf(file_output,'%.2f,%.2f,%.2f,%.2f,%.2f,%d\n', bboxes(i, :), overlap, failures);
         end
 
     end
